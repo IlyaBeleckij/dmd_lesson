@@ -68,12 +68,14 @@ def train_one_epoch(
     print_freq: int = 10,
     im_save_freq: int = 300,
 ):
+
+    ### Различие utils для данных и автокастинга
     amp_autocast = amp_autocast or suppress
     output_dir = Path(output_dir)
     images_dir = output_dir / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
 
-    # Set G and mu_fake to train mode, mu_real should be frozen
+    # Устанавливаем модели, замораживаем и размораживаем градиенты
     generator.requires_grad_(True).train()
     mu_fake.requires_grad_(True).train()
     mu_real.requires_grad_(False).eval()
@@ -95,10 +97,11 @@ def train_one_epoch(
         class_ids = encode_labels(class_idx, generator.label_dim)
 
         with amp_autocast():
-            # Update generator
-            # tanh after small experiment between (no-postprocess, tanh, clipping)
-            x = generator(z, generator_sigma, class_labels=class_ids)
-            x_ref = generator(z_ref, generator_sigma, class_labels=class_ids)
+            # генерируем x
+            # генерируем x_ref
+            # считаем loss генератора
+            x = '....'
+            x_ref = '...'
             l_g = loss_g(mu_real, mu_fake, x, x_ref, y_ref, class_ids)
             if not math.isfinite(l_g.item()):
                 print(f"Generator Loss is {l_g.item()}, stopping training")
@@ -111,7 +114,8 @@ def train_one_epoch(
         with amp_autocast():
             # Update mu_fake
             t = torch.randint(1, 1000, [x.shape[0]])  # t ~ DU(1,1000) as t=0 leads 1/0^2 -> inf
-            l_d = loss_d(mu_fake, x, t, class_ids)
+            # считаем лосс диффузионный
+            l_d = '....'
             if not math.isfinite(l_d.item()):
                 print(f"Diffusion Loss is {l_d.item()}, stopping training")
                 sys.exit(1)

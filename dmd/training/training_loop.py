@@ -97,12 +97,16 @@ def train_one_epoch(
         class_ids = encode_labels(class_idx, generator.label_dim)
 
         with amp_autocast():
-            # генерируем x
-            # генерируем x_ref
+            # генерируем x из какого шума?
+            # генерируем x_ref из какого шума?
             # считаем loss генератора
-            x = '....'
-            x_ref = '...'
-            l_g = loss_g(mu_real, mu_fake, x, x_ref, y_ref, class_ids)
+            x = generator('*** шум ***', generator_sigma, class_labels=class_ids)
+            x_ref = generator('*** шум ***', generator_sigma, class_labels=class_ids)
+            l_g = loss_g('*** замороженная диффузионная модель ***',
+                         '*** размороженная диффузионная модель ***',
+                         '*** объект, сгенерированный из чистого шума ***', 
+                         '*** объект, сгенерированный из шума из выборки ***',
+                         '*** референсный объект ***', class_ids)
             if not math.isfinite(l_g.item()):
                 print(f"Generator Loss is {l_g.item()}, stopping training")
                 sys.exit(1)
@@ -115,7 +119,9 @@ def train_one_epoch(
             # Update mu_fake
             t = torch.randint(1, 1000, [x.shape[0]])  # t ~ DU(1,1000) as t=0 leads 1/0^2 -> inf
             # считаем лосс диффузионный
-            l_d = '....'
+            l_d = loss_d('*** диффузионная модель ***', 
+                         '*** объект ***', 
+                         '*** timestep ***', class_ids)
             if not math.isfinite(l_d.item()):
                 print(f"Diffusion Loss is {l_d.item()}, stopping training")
                 sys.exit(1)
